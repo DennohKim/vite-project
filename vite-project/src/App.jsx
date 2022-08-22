@@ -1,34 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { React, useEffect, useState } from 'react';
+import Footer from './components/Footer';
+import NavBar from './components/NavBar';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [movies, setMovies] = useState([]);
+  const [movieCharacter, setMovieCharacter] = useState('avengers');
+  const API_KEY = import.meta.env.VITE_API_KEY;
+
+  /* Shape of data
+  {
+    "Title": "Batman v Superman: Dawn of Justice",
+    "Year": "2016",
+    "imdbID": "tt2975590",
+    "Type": "movie",
+    "Poster": "https://m.media-amazon.com/images/M/MV5BYThjYzcyYzItNTVjNy00NDk0LTgwMWQtYjMwNmNlNWJhMzMyXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg"
+}
+  */
+
+  useEffect(() => {
+    const fetchMovies = async (title) => {
+      const data = await fetch(`${API_KEY}&s=${title}`);
+      const moviesData = await data.json();
+      setMovies(moviesData.Search);
+    };
+
+    fetchMovies(movieCharacter);
+  }, [movieCharacter]);
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div>
+      <NavBar setMovieCharacter={setMovieCharacter} />
+
+      {movies.length > 0 ? (
+        <main className="container movies grid">
+          {movies?.map((movie) => (
+            <Movie key={movie.imdbID} {...movie} />
+          ))}
+        </main>
+      ) : (
+        <main className="container movies grid justify-center">
+          <h2 className="movies__not-found">Movies not found</h2>
+        </main>
+      )}
+
+      <Footer />
     </div>
-  )
+  );
 }
 
-export default App
+function Movie({ Title, Year, Poster }) {
+  return (
+    <article className="movie slide-in-fwd-center">
+      <div className="movie__info flex items-center justify-between">
+        <h1 className="movie__title">{Title?.split(':')[0]}</h1>
+        <p>{Year}</p>
+      </div>
+      <div>
+        <img
+          src={Poster !== 'N/A' ? Poster : 'https://via.placeholder.com/800'}
+          alt={Title}
+          className="movie__image"
+        />
+      </div>
+    </article>
+  );
+}
+
+export default App;
